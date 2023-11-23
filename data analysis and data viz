@@ -6,14 +6,14 @@ uber_data_april$Date.Time <- as.POSIXct(uber_data_april$Date.Time, format="%d/%m
 #daily number of rides : 
 uber_data_april$day <- format(uber_data_april$Date.Time, "%Y-%m-%d")
 daily_rides <- table(uber_data_april$day)
-length(daily_rides)
+daily_rides
 
 #monthly number of rides
 uber_data_april$month <- format(uber_data_april$Date.Time, "%Y-%m")
 monthly_rides <- table(uber_data_april$month)
-length(monthly_rides)
+monthly_rides
 
-#peak hours plot 
+#peak hours  
 uber_data_april$hour <- as.numeric(format(uber_data_april$Date.Time, "%H"))
 rides_per_hour <- table(uber_data_april$hour)
 
