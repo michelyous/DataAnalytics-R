@@ -44,12 +44,6 @@ uber_data_janjune
 summary(uber_data_janjune)
 str(uber_data_janjune)
 
-#Merge Datasets
-uber_data_14 <- rbind(uber_data_april, uber_data_july, uber_data_june, uber_data_may, uber_data_sep)
-
-summary(uber_data_14)
-str(uber_data_14)
-
 
 # Combine All the data together  
 data2014 <- rbind(uber_data_april, uber_data_aug, uber_data_july,uber_data_june,uber_data_may,uber_data_sep, uber_data_janjune)
