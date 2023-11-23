@@ -1,0 +1,23 @@
+#3 data analysis
+head(uber_data_april)
+uber_data_april$Date.Time <- as.POSIXct(uber_data_april$Date.Time, format="%d/%m/%Y %H:%M:%S")
+
+
+#daily number of rides : 
+uber_data_april$day <- format(uber_data_april$Date.Time, "%Y-%m-%d")
+daily_rides <- table(uber_data_april$day)
+length(daily_rides)
+
+#monthly number of rides
+uber_data_april$month <- format(uber_data_april$Date.Time, "%Y-%m")
+monthly_rides <- table(uber_data_april$month)
+length(monthly_rides)
+
+########par(mfrow=c(1,1))
+
+#visualizing daily number of rides 
+barplot(daily_rides, main = "Daily Number of Rides", xlab = "Date", ylab = "Number of Rides", col = "skyblue")
+
+#visualizing monthly number of rides 
+barplot(monthly_rides, main = "Monthly Number of Rides", xlab = "Month", ylab = "Number of Rides", col = "lightcoral")
+
