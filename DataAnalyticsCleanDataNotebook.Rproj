@@ -46,7 +46,7 @@ str(uber_data_janjune)
 
 
 # Combine All the data together  
-data2014 <- rbind(uber_data_april, uber_data_aug, uber_data_july,uber_data_june,uber_data_may,uber_data_sep, uber_data_janjune)
+uber_data_2014 <- rbind(uber_data_april, uber_data_aug, uber_data_july,uber_data_june,uber_data_may,uber_data_sep, uber_data_janjune)
 
 # Make sure that all the date is combined
 cat("The dimensions of all data are:", dim(data2014))
