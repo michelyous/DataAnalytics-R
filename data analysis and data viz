@@ -1,7 +1,7 @@
 #3 data analysis
+
 head(uber_data_april)
 uber_data_april$Date.Time <- as.POSIXct(uber_data_april$Date.Time, format="%d/%m/%Y %H:%M:%S")
-
 
 #daily number of rides : 
 uber_data_april$day <- format(uber_data_april$Date.Time, "%Y-%m-%d")
@@ -13,11 +13,21 @@ uber_data_april$month <- format(uber_data_april$Date.Time, "%Y-%m")
 monthly_rides <- table(uber_data_april$month)
 length(monthly_rides)
 
-########par(mfrow=c(1,1))
+#peak hours plot 
+uber_data_april$hour <- as.numeric(format(uber_data_april$Date.Time, "%H"))
+rides_per_hour <- table(uber_data_april$hour)
+
+
+#4 Data visualization
 
 #visualizing daily number of rides 
 barplot(daily_rides, main = "Daily Number of Rides", xlab = "Date", ylab = "Number of Rides", col = "skyblue")
 
 #visualizing monthly number of rides 
 barplot(monthly_rides, main = "Monthly Number of Rides", xlab = "Month", ylab = "Number of Rides", col = "lightcoral")
+
+#visualizing peak hours 
+plot(rides_per_hour, type = "o", col = "orange", xlab = "Hour of the Day", ylab = "Number of Rides", main = "Peak Hours Analysis")
+
+
 
