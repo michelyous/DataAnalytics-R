@@ -383,7 +383,7 @@ ggplot(ride_data, aes(x = Day, y = Rides)) +
   labs(title = "Uber Rides per Day in September", x = "Day of the Month", y = "Number of Rides")
 
 
-#9 Association and Dimensioning using Apriori algorithm 
+#9 Association rules using Apriori algorithm 
 install.packages("arules")
 library(arules)
 
@@ -396,7 +396,8 @@ rules <- apriori(transactions, parameter = list(support = 0.001, confidence = 0.
 inspect(rules)
 rules
 
-#10 Frequent Item set
+
+#10 Data dimensioning
 # from the association rules : 
 
 # *Certain hours like : 12h and 18h 00h are frequently associated with a certain locations such as
@@ -410,12 +411,24 @@ rules
 # *Peak horus for the following months : 04, 03, 02, 08, 05, 11, 10, 09 is 12h and 18h 
 # while for the following months : 06, 02, 05 is 00h and 12h.
 
+
+#scatter plot of the association rules 
 quality(rules)$support
 quality(rules)$confidence
 
-#ploting the association rules scatterplot
 plot(quality(rules)$support, quality(rules)$confidence, xlab = "Support", ylab = "Confidence", col = "blue", main = "Association Rules Scatterplot")
-#Interpreting the plot : most of the rules are concentrated in he upper left of the plot 
+
+#frequent itemsets using Eclat method  
+frequent_itemsets <- eclat(transactions, parameter = list(supp = 0.1))
+inspect(frequent_itemsets)
+
+frequent_df <- as(frequent_itemsets, "data.frame")
+
+# Plotting support values
+barplot(frequent_df$support, names.arg = frequent_df$items,
+        main = "Support of Frequent Itemsets",
+        xlab = "Frequent Itemsets", ylab = "Support",
+        col = "skyblue", cex.names = 0.7)
 
 #11 Prediction model :
 # Load necessary libraries
