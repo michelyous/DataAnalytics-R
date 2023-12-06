@@ -1,8 +1,13 @@
 #1 DataCollection
+# Set a new working directory
+setwd("C:/Users/vitto/Desktop/R-projects/DataAnalytics/DataSets_uber-pickups-in-new-york-city")
+
 uber_data_april = read.csv("uber-raw-data-apr14.csv")
 uber_data_april
 summary(uber_data_april)
-str(uber_data_april)
+str(uber_data_april)  # This will show your current working directory
+
+
 
 uber_data_aug = read.csv("uber-raw-data-aug14.csv")
 uber_data_aug
@@ -98,26 +103,21 @@ if (num_duplicates > 0) {
 
 #3 data analysis
 
-uber_data_2014$Date.Time <- as.POSIXct(uber_data_2014$Date.Time, format = "%Y-%m-%d %H:%M:%S")
+par(mfrow=c(1,1))
 
-#extract day and month from date and add it new column
-uber_data_2014$day <- as.Date(uber_data_2014$Date.Time, format = "%Y-%m-%d")
+head(uber_data_2014)
+uber_data_2014$Date.Time <- as.POSIXct(uber_data_2014$Date.Time, format="%d/%m/%Y %H:%M:%S")
+head(uber_data_2014)
+
+#daily number of rides : 
+uber_data_2014$day <- format(uber_data_2014$Date.Time, "%Y-%m-%d")
+daily_rides <- table(uber_data_2014$day)
+length(daily_rides)
+
+#monthly number of rides
 uber_data_2014$month <- format(uber_data_2014$Date.Time, "%Y-%m")
-
-library(dplyr)
-
-#Daily Rides
-daily_rides <- uber_data_2014 %>%
-  group_by(day) %>%
-  summarise(number_of_rides = n())
-
-#Monthly Rides
-monthly_rides <- uber_data_2014 %>%
-  group_by(month) %>%
-  summarise(number_of_rides = n())
-
-print(daily_rides)
-print(monthly_rides)
+monthly_rides <- table(uber_data_2014$month)
+length(monthly_rides)
 
 #4 Data Visualization
 
@@ -180,6 +180,39 @@ rides_per_hour
 #visualizing peak hours 
 plot(rides_per_hour, type = "o", col = "orange", xlab = "Hour of the Day", ylab = "Number of Rides", main = "Peak Hours Analysis")
 
+####Calculate the integral under the curve of the peak analysis graph
+start_hour <- 12
+end_hour <- 24
+
+# Function to calculate the trapezoidal area under the curve
+trapezoidal_area <- function(y, h) {
+  0.5 * sum(h * (y[-1] + y[-length(y)]))
+}
+
+# Calculate the indices for the specific interval
+interval_indices <- start_hour: end_hour
+
+# Extract the counts for the specific interval
+specific_counts <- as.numeric(rides_per_hour[interval_indices])
+
+# Extract the counts for the entire range
+all_counts <- as.numeric(rides_per_hour)
+
+# Calculate the trapezoidal area for the specific interval
+specific_area <- trapezoidal_area(specific_counts, 1)
+
+# Calculate the trapezoidal area for the total range
+total_area <- trapezoidal_area(all_counts, 1)
+
+# Calculate the percentage
+percentage_specific_area <- (specific_area / total_area) * 100
+
+# Print the results
+cat("Specific Area:", specific_area, "\n")
+cat("Total Area:", total_area, "\n")
+cat("Percentage of Total Area:", percentage_specific_area, "%\n")
+
+
 #8 Peak Day Analysis
 
 #April
@@ -200,12 +233,16 @@ cat("April: \n","Peak Day:", peak_day, "\nNumber of Rides:", peak_rides, "\n")
 # Convert ride_counts to a data frame
 ride_data <- data.frame(Day = as.integer(names(ride_counts)), Rides = as.integer(ride_counts))
 
+# Load ggplot2
+library(ggplot2)
+
 # Create the plot
 ggplot(ride_data, aes(x = Day, y = Rides)) +
   geom_bar(stat = "identity", fill = ifelse(ride_data$Day == peak_day, "red", "blue")) +
   geom_text(data = subset(ride_data, Day == peak_day), aes(label = Rides, vjust = -0.5)) +
   theme_minimal() +
   labs(title = "Uber Rides per Day in April", x = "Day of the Month", y = "Number of Rides")
+
 
 
 #August
@@ -429,6 +466,9 @@ ggplot(data = weekday_df, aes(x = Weekday, y = Frequency)) +
   theme_minimal()
 
 #Geospatial Analysis
+
+
+'''
 # Simple approach: count rides per rounded lat/lon
 # Aggregate ride counts by rounded latitude and longitude
 location_counts <- aggregate(cbind(Count = uber_data_2014$Lat) ~ round(Lat, 2) + round(Lon, 2), data = uber_data_2014, FUN = length)
@@ -437,11 +477,167 @@ names(location_counts) <- c("Latitude", "Longitude", "Count")
 # Plot the high-demand locations
 plot(location_counts$Latitude, location_counts$Longitude, main = "High-Demand Locations", xlab = "Latitude", ylab = "Longitude", pch = 19, col = "blue")
 
+
+### SAME PLOT AS BEFORE BUT WITH A CLEARLY INDICATION ON WHIC IS MORE USED
+# Install and load necessary packages (if not already installed)
+if (!require("viridis")) install.packages("viridis", dependencies=TRUE)
+library(viridis)
+
+# Aggregate ride counts by rounded latitude and longitude
+location_counts <- aggregate(cbind(Count = uber_data_2014$Lat) ~ round(Lat, 2) + round(Lon, 2), data = uber_data_2014, FUN = length)
+
+# Correct the column names if necessary
+names(location_counts) <- c("Latitude", "Longitude", "Count")
+
+# Normalize count for better color representation
+location_counts$Count <- log(location_counts$Count + 1)
+
+# Create a scatter plot with color intensity representing ride counts
+plot(location_counts$Latitude, location_counts$Longitude, 
+     main = "High-Demand Locations", 
+     xlab = "Latitude", ylab = "Longitude", 
+     pch = 19, 
+     col = viridis(100)[cut(location_counts$Count, breaks = 100)])
+
+# Invert the x and y axes
+axis(1, at = pretty(location_counts$Latitude), labels = pretty(location_counts$Latitude), cex.axis = 0.2)
+axis(2, at = pretty(location_counts$Longitude), labels = pretty(location_counts$Longitude), cex.axis = 0.2)
+
+# Add a color legend
+legend("topright", legend = "Ride Count", fill = viridis(100), cex = 0.7, title = "Count", box.col = "white")
+'''
+
+
+
+# Install and load necessary packages (if not already installed)
+if (!require("viridis")) install.packages("viridis", dependencies=TRUE)
+if (!require("leaflet")) install.packages("leaflet", dependencies=TRUE)
+
+library(viridis)
+library(leaflet)
+
+# Aggregate ride counts by rounded latitude and longitude
+location_counts <- aggregate(cbind(Count = uber_data_2014$Lat) ~ round(Lat, 2) + round(Lon, 2), data = uber_data_2014, FUN = length)
+
+# Correct the column names if necessary
+names(location_counts) <- c("Latitude", "Longitude", "Count")
+
+# Normalize count for better color representation
+location_counts$Count <- log(location_counts$Count + 1)
+
+# Sort by count in descending order
+location_counts <- location_counts[order(-location_counts$Count), ]
+
+# Calculate the cumulative percentage of rides
+location_counts$CumulativePercent <- cumsum(location_counts$Count) / sum(location_counts$Count) * 100
+
+# Find the number of locations needed to reach or exceed 75%
+num_locations_75_percent <- which(location_counts$CumulativePercent >= 75)[1]
+
+# Select the top locations that aggregate 75% of all rides
+top_locations_75_percent <- location_counts[1:num_locations_75_percent, ]
+
+# Calculate the percentage of total rides that the top locations make
+percentage_top_locations <- sum(top_locations_75_percent$Count) / sum(location_counts$Count) * 100
+
+# Categorize locations based on usage
+usage_categories <- cut(top_locations_75_percent$Count, breaks = c(0, 300, 600, Inf), labels = c("Low Frequency", "Medium Frequency", "High Frequency"))
+
+# Assign colors based on usage categories
+colors <- viridis(length(levels(usage_categories)))
+
+# Limit to the top 1000 locations
+top_1000_locations <- top_locations_75_percent[1:1000, ]
+
+# Calculate the percentage of total rides that the top 1000 locations make
+percentage_top_1000 <- sum(top_1000_locations$Count) / sum(location_counts$Count) * 100
+
+# Create breaks based on the usage categories
+breaks <- c(0, quantile(top_1000_locations$Count, 0.3), quantile(top_1000_locations$Count, 0.6), Inf)
+
+# Categorize locations based on usage
+usage_categories_1000 <- cut(top_1000_locations$Count, breaks = breaks, labels = c("Low Frequency", "Medium Frequency", "High Frequency"))
+
+# Create a leaflet map with colored markers
+m <- leaflet() %>%
+  addTiles() %>%
+  addCircleMarkers(
+    lng = top_1000_locations$Longitude,
+    lat = top_1000_locations$Latitude,
+    popup = paste("Count: ", top_1000_locations$Count, "<br>Category: ", usage_categories_1000),
+    color = colors[as.numeric(usage_categories_1000)],
+    fillOpacity = 0.8
+  ) %>%
+  addLegend(
+    "topright",
+    colors = colors,
+    labels = c("Low Frequency", "Medium Frequency", "High Frequency"),
+    title = paste("Frequently used Pick-Up points")
+  )
+
+# Print the map
+print(m)
+print(round(percentage_top_1000, 2))
+
+
 #public events
+
 
 #holidays
 
+
 #weather conditions
+file_path_weather_conditions <- "weather.csv"
+
+# Read the CSV file into a data frame
+weather_data <- read.csv(file_path_weather_conditions)
+weather_data$time_stamp <- as.POSIXct(weather_data$time_stamp, origin = "1970-01-01", tz = "UTC")
+weather_data$time_stamp <- as.Date(weather_data$time_stamp)
+# Display the updated structure of the data frame
+str(weather_data)
+
+###################################################################
+
+
+#Segmantation using clustering
+install.packages("cluster")
+library(cluster)
+#The cluster library provides clustering algorithms. In this case k-means is used.
+#clustering is performed on lat and long
+# Example: Clustering based on geographical data
+set.seed(123) # For reproducibility
+kmeans_result <- kmeans(uber_data_2014[, c('Lat', 'Lon')], centers=5)
+# Adding cluster information to the dataset
+uber_data_2014$Cluster <- kmeans_result$cluster
+
+#Analyzing Segments
+library(ggplot2)
+ggplot(uber_data_2014, aes(x=Hour, fill=factor(Cluster))) + 
+  geom_histogram(binwidth=1, position="dodge") + 
+  labs(fill="Cluster", x="Hour of the Day", y="Count") +
+  ggtitle("Trip Patterns by Cluster")
+
+#Tailoring Strategies Based on Segments
+# Example: Segmenting based on time of day and frequency
+uber_data_2014$User_Type <- ifelse(uber_data_2014$Hour >= 6 & uber_data_2014$Hour <= 18, 'Day User', 'Night User')
+uber_data_2014$Frequency <- ifelse(uber_data_2014$Day <= 15, 'First Half of Month', 'Second Half of Month')
+#This code segments the data by time of day ('Day User' vs. 'Night User')
+library(dplyr)
+filtered_data <- uber_data_2014 %>% 
+  filter(!is.na(User_Type) & !is.na(Frequency))
+ggplot(filtered_data, aes(x=User_Type, fill=Frequency)) + 
+  geom_bar(position="dodge") + 
+  labs(fill="Frequency", x="User Type", y="Count") +
+  ggtitle("Day and Night Users by Frequency")
+
+
+# Analyze segments
+#Day and Night users
+table(uber_data_2014$User_Type, uber_data_2014$Frequency)
+#Each cluster (1, 2, 3, 4, 5) represents a group of trips that are
+#geographically close to each other.
+#The histogram shows how trip patterns vary by hour for each cluster
+#A high bar in cluster suggests a high number of trips in that geographical area around the time we see in x-axis
 
 #13: Resource Allocation Optimization
 install.packages("lubridate")
@@ -521,7 +717,3 @@ print(paste("R-squared:", r2_val))
 
 residuals <- test_y - predictions
 plot(residuals, type = 'l', main = "Residuals Plot", xlab = "Index", ylab = "Residuals")
-
-
-
-
