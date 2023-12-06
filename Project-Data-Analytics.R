@@ -103,21 +103,26 @@ if (num_duplicates > 0) {
 
 #3 data analysis
 
-par(mfrow=c(1,1))
-
-head(uber_data_2014)
-uber_data_2014$Date.Time <- as.POSIXct(uber_data_2014$Date.Time, format="%d/%m/%Y %H:%M:%S")
-head(uber_data_2014)
-
-#daily number of rides : 
-uber_data_2014$day <- format(uber_data_2014$Date.Time, "%Y-%m-%d")
-daily_rides <- table(uber_data_2014$day)
-length(daily_rides)
-
-#monthly number of rides
+uber_data_2014$Date.Time <- as.POSIXct(uber_data_2014$Date.Time, format = "%Y-%m-%d %H:%M:%S")
+#extract day and month from date and add it new column
+uber_data_2014$day <- as.Date(uber_data_2014$Date.Time, format = "%Y-%m-%d")
 uber_data_2014$month <- format(uber_data_2014$Date.Time, "%Y-%m")
-monthly_rides <- table(uber_data_2014$month)
-length(monthly_rides)
+
+install.packages("dplyr")
+library(dplyr)
+
+#Daily Rides
+daily_rides <- uber_data_2014 %>%
+  group_by(day) %>%
+  summarise(number_of_rides = n())
+
+#Monthly Rides
+monthly_rides <- uber_data_2014 %>%
+  group_by(month) %>%
+  summarise(number_of_rides = n())
+
+print(daily_rides)
+print(monthly_rides)
 
 #4 Data Visualization
 
